@@ -1,0 +1,97 @@
+You will also need to install specific packages for your chosen database that will act as the connector for SQLAlchemy, so add the specific packages for your engine in requirements.txt, as shown in the following code. SQLite users can skip this step:
+library according to database
+    # MySQL
+    PyMySQL
+    # Postgres
+    psycopg2
+    # MSSQL
+    pyodbc
+    # Oracle
+    cx_Oracle
+
+Copy
+Finally, activate and install the dependencies using the following code:
+
+$ source env/bin/activate
+$ pip install -r requirements.txt
+
+Copy
+Flask SQLAlchemy
+Before we can abstract our data, we need to set up Flask SQLAlchemy. SQLAlchemy creates its database connection through a special database URI. This is a string that looks like a URL that contains all the information that SQLAlchemy needs to connect. It takes the general form of the following code:
+
+databasetype+driver://user:password@host:port/db_name 
+
+Copy
+For each driver that you installed previously, the URI would be as follows:
+
+# SQLite connection string/uri is a path to the database file - relative or absolute.
+sqlite:///database.db 
+# MySQL 
+mysql+pymysql://user:password@ip:port/db_name 
+# Postgres 
+postgresql+psycopg2://user:password@ip:port/db_name 
+# MSSQL 
+mssql+pyodbc://user:password@dsn_name 
+# Oracle 
+oracle+cx_oracle://user:password@ip:port/db_name 
+
+Copy
+In our config.py file, add the URI to the DevConfig file with the following:
+
+class DevConfig(Config): 
+  debug = True 
+  SQLALCHEMY_DATABASE_URI = "YOUR URI" 
+
+Copy
+Our first model
+You may have noticed that we did not actually create any tables in our database to abstract from. This is because SQLAlchemy allows us to create either models from tables or tables from our models. We will look at this after we have created the first model.
+
+In our main.py file, SQLAlchemy must first be initialized with our app as follows:
+
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from config import DevConfig
+
+app = Flask(__name__)
+app.config.from_object(DevConfig)
+db = SQLAlchemy(app) 
+
+Copy
+SQLAlchemy will read our app's configuration and automatically connect to our database. Let's create a User model to interact with a user table in the main.py file, as follows:
+
+class User(db.Model): 
+  id = db.Column(db.Integer(), primary_key=True) 
+  username = db.Column(db.String(255)) 
+  password = db.Column(db.String(255)) 
+ 
+  def __init__(self, username): 
+    self.username = username 
+ 
+  def __repr__(self): 
+    return "<User '{}'>".format(self.username) 
+
+Copy
+What have we accomplished? We now have a model that is based on a user table with three columns. When we inherit from db.Model, the entire connection and communication with the database will already be handled for us.
+
+Each class variable that is the db.Column instance represents a column in the database. There is an optional first argument in the db.Column instance that allows us to specify the name of the column in the database. Without it, SQLAlchemy will assume that the name of the variable is the same as the name of the column. Using this, optional variable would look like the following:
+
+username = db.Column('user_name', db.String(255))
+
+Copy
+The second argument to db.Column tells SQLAlchemy what type the column should be treated as. The main types that we will work with in this book are as follows:
+
+db.String
+db.Text
+db.Integer
+db.Float
+db.Boolean
+db.Date
+db.DateTime
+db.Time
+What each type represents is rather simple, as shown in the following list:
+
+The String and Text types take Python strings and translate them to the varchar and text type columns, respectively.
+The Integer and Float types take any Python number and translates it into the correct type before inserting it into the database.
+Boolean takes Python True or False statements and, if the database has a boolean type, inserts a Boolean into the database. If there is no boolean type in the database, SQLAlchemy automatically translates between Python Booleans and a 0 or a 1 in the database.
+The Date, DateTime, and Time types use the Python types of the same names from the datetime native library and translates them into the database.
+The String, Integer, and Float types take an extra argument that tells SQLAlchemy the length limit of our column.
