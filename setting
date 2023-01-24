@@ -1,3 +1,38 @@
+1)create ine file name config.cfg
+
+2)add following functionality into it
+SQLALCHEMY_TRACK_MODIFICATIONS = False
+SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:@localhost/qna'
+DEBUG = True
+
+in your ap.py
+
+from flask import Flask,render_template
+from flask_sqlalchemy import SQLAlchemy
+
+app = Flask(__name__)
+app.config.from_pyfile("config.cfg")
+db = SQLAlchemy(app)
+
+class Users(db.Model): 
+  id = db.Column(db.Integer(), primary_key=True) 
+  username = db.Column(db.String(255)) 
+  password = db.Column(db.String(255))
+  expert = db.Boolean()
+  admin = db.Boolean()
+  def __init__(self, username): 
+    self.username = username 
+ 
+  def __repr__(self): 
+    return "<User '{}'>".format(self.username)
+
+after adding table go to cmd and type command --   ------ flask shell
+it will add python shell
+from app import db 
+for creating all tables in database -------------db.craete_all()
+
+====================================================================================================================================
+
 You will also need to install specific packages for your chosen database that will act as the connector for SQLAlchemy, so add the specific packages for your engine in requirements.txt, as shown in the following code. SQLite users can skip this step:
 library according to database
 drivers forthe databases
